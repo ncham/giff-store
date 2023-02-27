@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { GiphySearchService } from '../services/giphy-search.service';
 
 @Component({
   selector: 'app-tab1',
@@ -7,6 +8,18 @@ import { Component } from '@angular/core';
 })
 export class Tab1Page {
 
-  constructor() {}
+  constructor(private giphySearchService: GiphySearchService) {}
+
+  imageurl="";
+
+  clickMe(){
+    this.giphySearchService.search().subscribe((data: any) => {
+      data.data.forEach((element: any) => {
+          console.log(element)
+      });
+      console.log(data.data[1].images.preview_gif.url)
+      this.imageurl = data.data[1].images.downsized.url;
+    });
+  }
 
 }
