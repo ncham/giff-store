@@ -2,25 +2,29 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+
 @Injectable({
   providedIn: 'root'
 })
-export class GiphySearchService {
+export class GiphyService {
 
   constructor(private httpClient: HttpClient) { }
 
-  search(): Observable<any> {
-    //"https://api.giphy.com/v1/gifs/search?api_key=ymwnFbnizeLvqPVxZZ6QA2S9dZKboJrb&q=apple&limit=25&offset=0&rating=g&lang=en"
+  /**
+   * 
+   * @param value 
+   * @param limit 
+   * @param offset 
+   * @returns 
+   */
+  search(value: string, limit?: number, offset?: number): Observable<any> {
     let giphyApiUrl = "https://api.giphy.com/v1/gifs/search";
 
     let queryParams = new HttpParams();
     queryParams = queryParams.append("api_key", "ymwnFbnizeLvqPVxZZ6QA2S9dZKboJrb");
-    queryParams = queryParams.append("q", "apple");
-    queryParams = queryParams.append("limit", "10");
-
-    // this.httpClient.get(giphyApiUrl, { params: queryParams }).subscribe((data: any) => {
-    //   console.log(data.data);
-    // })
+    queryParams = queryParams.append("q", value);
+    queryParams = queryParams.append("limit", "11");
+    queryParams = queryParams.append("offset", "2");
 
     return this.httpClient.get(giphyApiUrl, { params: queryParams });
   }

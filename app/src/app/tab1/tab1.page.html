@@ -1,18 +1,45 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
-    </ion-toolbar>
   </ion-header>
-<button (click)="clickMe()">xxxxx</button>
-<ion-img [src]="imageurl" alt="The Wisconsin State Capitol building in Madison, WI at night"></ion-img>
-  
+
+
+  <div class="wrapper">
+    <div class="tabs_wrap">
+      <ul>
+        <li [ngClass]="{active: stateFlag}" (click)="toggleTab(true)"><ion-icon
+            name="phone-portrait-outline" style="color: black; font-size: 20px;"></ion-icon></li>
+        <li [ngClass]="{active: !stateFlag}" (click)="toggleTab(false)"><img
+            style="margin: 0; padding: 0; height: 20px;" src="/assets/icon/giphy-ico.png"></li>
+      </ul>
+    </div>
+
+    <div class="container">
+
+      <div [ngClass]="{device: true, off: !stateFlag}">
+        <ion-searchbar placeholder="search gif" (search)="search($event.target)"></ion-searchbar>
+        Device
+      </div>
+      <div [ngClass]="{giphy: true, off: stateFlag}">
+        <ion-searchbar placeholder="search gif" (search)="search($event.target)"></ion-searchbar>
+        <div class="img-container">
+          <div class="image-wrapper" *ngFor="let image of giphySearchData">
+            <ng-container>
+              <ion-img [src]="image.images.preview_gif.url" [alt]="image.title"></ion-img>
+              <ion-icon (click)="downloadGif(image, $event.target)" class="overlay" name="download-outline"></ion-icon>
+            </ng-container>
+          </div>
+        </div>
+        <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">
+          <ion-infinite-scroll-content loadingText="Please wait..." loadingSpinner="bubbles"></ion-infinite-scroll-content>
+        </ion-infinite-scroll>
+      </div>
+    </div>
+  </div>
+
 </ion-content>
