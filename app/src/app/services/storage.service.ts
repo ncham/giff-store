@@ -19,9 +19,7 @@ export class StorageService {
     const storage = await this.storage.create();
     this._storage = storage;
   }
-
-  // Create and expose methods that users of this service can
-  // call, for example:
+  
   public async set(key: string, value: any): Promise<any> {
     await this.init();
     return this._storage?.set(key, value);

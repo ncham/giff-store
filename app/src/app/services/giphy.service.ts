@@ -11,7 +11,7 @@ export class GiphyService {
   constructor(private httpClient: HttpClient) { }
 
   /**
-   * 
+   * Search images from GIPHY
    * @param value 
    * @param limit 
    * @param offset 

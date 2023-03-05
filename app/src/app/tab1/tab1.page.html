@@ -8,25 +8,45 @@
   <ion-header collapse="condense">
   </ion-header>
 
-
   <div class="wrapper">
     <div class="tabs_wrap">
       <ul>
-        <li [ngClass]="{active: stateFlag}" (click)="toggleTab(true)"><ion-icon
-            name="phone-portrait-outline" style="color: black; font-size: 20px;"></ion-icon></li>
+        <li [ngClass]="{active: stateFlag}" (click)="toggleTab(true)"><ion-icon name="phone-portrait-outline"
+            style="color: black; font-size: 20px;"></ion-icon></li>
         <li [ngClass]="{active: !stateFlag}" (click)="toggleTab(false)"><img
             style="margin: 0; padding: 0; height: 20px;" src="/assets/icon/giphy-ico.png"></li>
       </ul>
     </div>
 
     <div class="container">
-
       <div [ngClass]="{device: true, off: !stateFlag}">
-        <ion-searchbar placeholder="search gif" (search)="search($event.target)"></ion-searchbar>
-        Device
+        <ion-searchbar [debounce]="1000" placeholder="search gif" (ionChange)="searchFromDevice($event.target)"></ion-searchbar>
+
+        <div class="sort-controls">
+          <ion-item>
+            <ion-select interface="popover" placeholder="Sort by" [(ngModel)]="sortBy" (ionChange)="handleSortByChange($event)">
+              <ion-select-option value="">Sort by</ion-select-option>
+              <ion-select-option value="name">Name</ion-select-option>
+              <ion-select-option value="dateSaved">Date Saved</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-select interface="popover" placeholder="Order" [(ngModel)]="order" (ionChange)="handleOrderChange($event)">
+              <ion-select-option value=1>Asc</ion-select-option>
+              <ion-select-option value=2>Desc</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div class="img-container">
+          <div class="image-wrapper" *ngFor="let savedImage of savedPhotos">
+            <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
+          </div>
+        </div>
       </div>
       <div [ngClass]="{giphy: true, off: stateFlag}">
-        <ion-searchbar placeholder="search gif" (search)="search($event.target)"></ion-searchbar>
+        <ion-searchbar placeholder="search gif" (search)="searchFromGiphy($event.target)"></ion-searchbar>
         <div class="img-container">
           <div class="image-wrapper" *ngFor="let image of giphySearchData">
             <ng-container>
@@ -36,7 +56,8 @@
           </div>
         </div>
         <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">
-          <ion-infinite-scroll-content loadingText="Please wait..." loadingSpinner="bubbles"></ion-infinite-scroll-content>
+          <ion-infinite-scroll-content loadingText="Please wait..."
+            loadingSpinner="bubbles"></ion-infinite-scroll-content>
         </ion-infinite-scroll>
       </div>
     </div>

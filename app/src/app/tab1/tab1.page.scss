@@ -121,6 +121,23 @@ body{
     margin-bottom: 5px;
   }
 
+  .container .sort-controls{
+    column-count: 2;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+
+  ion-select::part(icon) {
+    display: none;
+  }
+
+  ion-select::part(text) {
+    color: #545ca7;
+    font-weight: bold;
+  }
+
+   
+
   
   
 //   .wrapper .container .item_wrap{
