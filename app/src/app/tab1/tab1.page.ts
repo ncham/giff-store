@@ -12,14 +12,14 @@ import { AlertController } from '@ionic/angular';
 export class Tab1Page {
 
   constructor(private giphyService: GiphyService,
-    private fileManagerService: FileManagerService,
+    public fileManagerService: FileManagerService,
     private alertController: AlertController) { }
 
   imageurl = "";
   stateFlag = true;
   giphySearchData: any = null;
   savedPhotos: any = null;
-  savedPhotosDefault: any = null
+  searchValue = ""
   sortBy = ""
   order = 1
 
@@ -27,7 +27,6 @@ export class Tab1Page {
     this.fileManagerService.loadSavedGifs().then(data => {
       console.log(data)
       this.savedPhotos = data;
-      this.savedPhotosDefault = data;
     });
   }
 
@@ -49,17 +48,6 @@ export class Tab1Page {
     }
   }
 
-  async searchFromDevice(target: EventTarget | null) {
-    let value = (target as HTMLInputElement).value
-
-    if (value) {
-      this.savedPhotos = await this.fileManagerService.filterGifs(this.savedPhotosDefault, value)
-      console.log(this.savedPhotos)
-    } else {
-      this.savedPhotos = this.savedPhotosDefault.slice();
-    }
-  }
-
   async downloadGif(image: any, target: EventTarget | null) {
     const alert = await this.alertController.create({
       header: 'Please enter filename',
@@ -72,10 +60,9 @@ export class Tab1Page {
       if (data.role == 'ok') {
         let fileName = data.data.values[0]
         if (fileName) {
-          await this.fileManagerService.storeImage(image.images.original.url, image.id, fileName);
+          await this.fileManagerService.saveGif(image.images.original.url, image.id, fileName);
 
-          this.savedPhotos = this.fileManagerService.savedPhotosDefault
-          console.log(this.fileManagerService.savedPhotosDefault)
+          this.savedPhotos = this.fileManagerService.savedFilesAll
 
           let targetElement = target as HTMLInputElement
           targetElement.style.display = 'none';
@@ -86,31 +73,42 @@ export class Tab1Page {
     console.log(image)
   }
 
+  searchFromDeviceEvent(target: EventTarget | null) {
+    let value = (target as HTMLInputElement).value
+    this.searchValue = value as string
+
+    this.refreshGifs()
+  }
+
   handleSortByChange($e: Event) {
     const value = ($e as CustomEvent).detail.value
-
-    if (value) {
-      this.fileManagerService.sortGifs(this.savedPhotos, value, this.order)
-    } else {
-      this.savedPhotos = this.savedPhotosDefault.slice();
-    }
+    this, this.refreshGifs()
   }
 
   handleOrderChange($e: Event) {
     const value = ($e as CustomEvent).detail.value
+    this.refreshGifs()
+  }
 
-    if (this.sortBy && value) {
-      this.fileManagerService.sortGifs(this.savedPhotos, this.sortBy, value)
+  async refreshGifs() {
+    this.savedPhotos = this.fileManagerService.savedFilesAll.slice()
+
+    if (this.searchValue) {
+      this.savedPhotos = await this.fileManagerService.filterGifs(this.fileManagerService.savedFilesAll, this.searchValue)
+    }
+
+    if (this.sortBy) {
+      this.fileManagerService.sortGifs(this.savedPhotos, this.sortBy, this.order)
+    }
+
+    if (this.sortBy && this.order) {
+      this.fileManagerService.sortGifs(this.savedPhotos, this.sortBy, this.order)
     }
   }
 
   onIonInfinite(ev: Event) {
     this.fileManagerService.loadNextBatch().subscribe(data => {
-
-      console.log(this.giphySearchData)
-      let xx = Object.assign(this.giphySearchData, data)
-      console.log(data)
-      console.log(xx)
+      this.giphySearchData = [...this.giphySearchData, ...data]
     })
     setTimeout(() => {
       (ev as InfiniteScrollCustomEvent).target.complete();

@@ -20,7 +20,7 @@
 
     <div class="container">
       <div [ngClass]="{device: true, off: !stateFlag}">
-        <ion-searchbar [debounce]="1000" placeholder="search gif" (ionChange)="searchFromDevice($event.target)"></ion-searchbar>
+        <ion-searchbar [debounce]="1000" placeholder="search gif" (ionChange)="searchFromDeviceEvent($event.target)"></ion-searchbar>
 
         <!-- Device gif tab -->
         <div class="sort-controls">

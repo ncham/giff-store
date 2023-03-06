@@ -13,36 +13,45 @@ export class FileManagerService {
 
   private GIF_STORAGE: string = 'gif-store';
 
-  private _savedPhotosDefault: any = null;
-  get savedPhotosDefault() {
-    return this._savedPhotosDefault
+  private _savedFilesAll: any = null;
+  get savedFilesAll() {
+    return this._savedFilesAll
   }
-  set savedPhotosDefault(savedPhotosDefault) {
-    this._savedPhotosDefault = savedPhotosDefault
+  set savedFilesAll(savedFilesAll) {
+    this._savedFilesAll = savedFilesAll
+  }
+
+  private _giphySearchData: any = null;
+  get giphySearchData() {
+    return this._giphySearchData
+  }
+  set giphySearchData(giphySearchData) {
+    this._giphySearchData = giphySearchData
   }
 
   limit = 25
   offset = 0
   searchValue: string = '';
 
-  constructor(private storageService: StorageService,
+  constructor(
+    private storageService: StorageService,
     private giphyService: GiphyService) { }
 
   /**
-   * Save image on device
+   * Save gif on device
    * @param url 
    * @param imageId 
    * @param fileName 
    */
-  async storeImage(url: string, imageId: string, fileName: string) {
+  async saveGif(url: string, imageId: string, fileName: string) {
     let savedFile = await this.download(url, fileName);
-    let savedFileData = await this.storageService.get('gif-store') ?? [];
+    let savedFiles = await this.storageService.get('gif-store') ?? [];
 
     if (savedFile) {
-      savedFileData.push({ imageId: imageId, savedLocation: savedFile.uri, fileName: fileName, dateSaved: Date.now() });
+      savedFiles.push({ imageId: imageId, savedLocation: savedFile.uri, fileName: fileName, dateSaved: Date.now() });
 
-      await this.storageService.set('gif-store', savedFileData);
-      this._savedPhotosDefault = savedFileData
+      await this.storageService.set('gif-store', savedFiles);
+      this._savedFilesAll = savedFiles
       await this.setWebViewPath()
     }
   }
@@ -58,6 +67,7 @@ export class FileManagerService {
 
   loadNextBatch() {
     this.offset = this.offset + this.limit
+    console.log(this.searchValue, this.limit, this.offset)
     return this.giphyService.search(this.searchValue, this.limit, this.offset)
       .pipe(
         map(data => data.data),
@@ -85,27 +95,30 @@ export class FileManagerService {
       await this.sortGifs(savedFileData, sortBy, order)
     }
 
-    return new Promise(resolve => {
-      savedFileData.forEach(async (file: any) => {
-        const readFile = await Filesystem.readFile({
-          path: file.savedLocation,
-        });
-        file.webviewPath = `data:image/gif;base64,${readFile.data}`;
-      });
-      this.savedPhotosDefault = savedFileData
-      resolve(savedFileData);
-    })
+    this._savedFilesAll = savedFileData
+    return await this.setWebViewPath()
+
+    // return new Promise(resolve => {
+    //   savedFileData.forEach(async (file: any) => {
+    //     const readFile = await Filesystem.readFile({
+    //       path: file.savedLocation,
+    //     });
+    //     file.webviewPath = `data:image/gif;base64,${readFile.data}`;
+    //   });
+    //   this.savedFilesAll = savedFileData
+    //   resolve(savedFileData);
+    // })
   }
 
   setWebViewPath() {
     return new Promise(resolve => {
-      this._savedPhotosDefault.forEach(async (file: any) => {
+      this._savedFilesAll.forEach(async (file: any) => {
         const readFile = await Filesystem.readFile({
           path: file.savedLocation,
         });
         file.webviewPath = `data:image/gif;base64,${readFile.data}`;
       });
-      resolve('done')
+      resolve(this._savedFilesAll)
     })
   }
 
