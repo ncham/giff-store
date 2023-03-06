@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 
@@ -17,14 +17,14 @@ export class GiphyService {
    * @param offset 
    * @returns 
    */
-  search(value: string, limit?: number, offset?: number): Observable<any> {
+  search(value: string, limit = 10, offset = 0): Observable<any> {
     let giphyApiUrl = "https://api.giphy.com/v1/gifs/search";
 
     let queryParams = new HttpParams();
     queryParams = queryParams.append("api_key", "ymwnFbnizeLvqPVxZZ6QA2S9dZKboJrb");
     queryParams = queryParams.append("q", value);
-    queryParams = queryParams.append("limit", "11");
-    queryParams = queryParams.append("offset", "2");
+    queryParams = queryParams.append("limit", limit);
+    queryParams = queryParams.append("offset", offset);
 
     return this.httpClient.get(giphyApiUrl, { params: queryParams });
   }

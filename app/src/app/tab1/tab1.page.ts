@@ -35,11 +35,17 @@ export class Tab1Page {
     let targetElement = target as HTMLInputElement
     if (target && targetElement.value) {
       const value = targetElement.value
-      this.giphyService.search(value).subscribe((data: any) => {
-        this.giphySearchData = data?.data
-        console.log(this.giphySearchData?.length)
-        console.log(this.giphySearchData)
-      });
+
+      // this.giphyService.search(value).subscribe((data: any) => {
+      //   this.giphySearchData = data?.data
+      //   console.log(this.giphySearchData?.length)
+      //   console.log(this.giphySearchData)
+      // });
+
+      this.fileManagerService.searchFromGiphy(value)
+        .subscribe(data =>
+          this.giphySearchData = data
+        )
     }
   }
 
@@ -62,11 +68,15 @@ export class Tab1Page {
     });
 
     await alert.present();
-    alert.onDidDismiss().then(data => {
+    alert.onDidDismiss().then(async data => {
       if (data.role == 'ok') {
         let fileName = data.data.values[0]
         if (fileName) {
-          this.fileManagerService.storeImage(image.images.original.url, image.id, fileName);
+          await this.fileManagerService.storeImage(image.images.original.url, image.id, fileName);
+
+          this.savedPhotos = this.fileManagerService.savedPhotosDefault
+          console.log(this.fileManagerService.savedPhotosDefault)
+
           let targetElement = target as HTMLInputElement
           targetElement.style.display = 'none';
         }
@@ -95,6 +105,13 @@ export class Tab1Page {
   }
 
   onIonInfinite(ev: Event) {
+    this.fileManagerService.loadNextBatch().subscribe(data => {
+
+      console.log(this.giphySearchData)
+      let xx = Object.assign(this.giphySearchData, data)
+      console.log(data)
+      console.log(xx)
+    })
     setTimeout(() => {
       (ev as InfiniteScrollCustomEvent).target.complete();
     }, 500);

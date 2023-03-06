@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Filesystem } from '@capacitor/filesystem';
 import { Directory } from '@capacitor/filesystem/dist/esm/definitions';
+import { Observable } from 'rxjs';
+import { GiphyService } from './giphy.service';
 import { StorageService } from './storage.service';
+import { concatAll, filter, map, mergeMap, toArray } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +13,20 @@ export class FileManagerService {
 
   private GIF_STORAGE: string = 'gif-store';
 
-  constructor(private storageService: StorageService) { }
+  private _savedPhotosDefault: any = null;
+  get savedPhotosDefault() {
+    return this._savedPhotosDefault
+  }
+  set savedPhotosDefault(savedPhotosDefault) {
+    this._savedPhotosDefault = savedPhotosDefault
+  }
+
+  limit = 25
+  offset = 0
+  searchValue: string = '';
+
+  constructor(private storageService: StorageService,
+    private giphyService: GiphyService) { }
 
   /**
    * Save image on device
@@ -26,8 +42,35 @@ export class FileManagerService {
       savedFileData.push({ imageId: imageId, savedLocation: savedFile.uri, fileName: fileName, dateSaved: Date.now() });
 
       await this.storageService.set('gif-store', savedFileData);
+      this._savedPhotosDefault = savedFileData
+      await this.setWebViewPath()
     }
   }
+
+  searchFromGiphy(value: string): Observable<any> {
+    this.searchValue = value
+    return this.giphyService.search(value, this.limit, this.offset)
+      .pipe(
+        map(data => data.data),
+        mergeMap(async data => this.isSavedFile(data)),
+      )
+  }
+
+  loadNextBatch() {
+    this.offset = this.offset + this.limit
+    return this.giphyService.search(this.searchValue, this.limit, this.offset)
+      .pipe(
+        map(data => data.data),
+        mergeMap(async data => this.isSavedFile(data)),
+      )
+  }
+
+  isSavedFile = async (data: any) => {
+    const savedFileData = await this.storageService.get('gif-store');
+    const savedFileDataIds = savedFileData.map((element: any) => element.imageId);
+
+    return data.filter((item: any) => !savedFileDataIds.includes(item.id));
+  };
 
   /**
    * 
@@ -36,7 +79,7 @@ export class FileManagerService {
    * @returns 
    */
   async loadSavedGifs(sortBy?: string, order = 1) {
-    let savedFileData = await this.storageService.get('gif-store');
+    let savedFileData = await this.storageService.get('gif-store') ?? [];
 
     if (sortBy) {
       await this.sortGifs(savedFileData, sortBy, order)
@@ -49,7 +92,20 @@ export class FileManagerService {
         });
         file.webviewPath = `data:image/gif;base64,${readFile.data}`;
       });
+      this.savedPhotosDefault = savedFileData
       resolve(savedFileData);
+    })
+  }
+
+  setWebViewPath() {
+    return new Promise(resolve => {
+      this._savedPhotosDefault.forEach(async (file: any) => {
+        const readFile = await Filesystem.readFile({
+          path: file.savedLocation,
+        });
+        file.webviewPath = `data:image/gif;base64,${readFile.data}`;
+      });
+      resolve('done')
     })
   }
 

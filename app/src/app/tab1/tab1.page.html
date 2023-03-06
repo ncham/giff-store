@@ -22,6 +22,7 @@
       <div [ngClass]="{device: true, off: !stateFlag}">
         <ion-searchbar [debounce]="1000" placeholder="search gif" (ionChange)="searchFromDevice($event.target)"></ion-searchbar>
 
+        <!-- Device gif tab -->
         <div class="sort-controls">
           <ion-item>
             <ion-select interface="popover" placeholder="Sort by" [(ngModel)]="sortBy" (ionChange)="handleSortByChange($event)">
@@ -45,6 +46,8 @@
           </div>
         </div>
       </div>
+
+      <!-- Giphy tab -->
       <div [ngClass]="{giphy: true, off: stateFlag}">
         <ion-searchbar placeholder="search gif" (search)="searchFromGiphy($event.target)"></ion-searchbar>
         <div class="img-container">
@@ -60,6 +63,7 @@
             loadingSpinner="bubbles"></ion-infinite-scroll-content>
         </ion-infinite-scroll>
       </div>
+
     </div>
   </div>
 
