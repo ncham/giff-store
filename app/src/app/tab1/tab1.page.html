@@ -29,6 +29,7 @@
               <ion-select-option value="">Sort by</ion-select-option>
               <ion-select-option value="name">Name</ion-select-option>
               <ion-select-option value="dateSaved">Date Saved</ion-select-option>
+              <ion-select-option value="custom">Custom</ion-select-option>
             </ion-select>
           </ion-item>
 
@@ -41,23 +42,44 @@
         </div>
 
         <div class="img-container">
-          <div class="image-wrapper" *ngFor="let savedImage of savedPhotos">
+          <!-- <div class="image-wrapper" *ngFor="let savedImage of savedPhotos">
             <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
-          </div>
+          </div> -->
+          <!-- <div class="image-wrapper" *ngFor="let savedImage of savedPhotos" style="width: 50%; box-sizing: border-box;">
+            <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
+          </div> -->
+
+          <ion-reorder-group [disabled]="isDisabled" (ionItemReorder)="handleReorder($any($event))">
+            <ion-item *ngFor="let item of savedPhotos">
+              <ion-label>
+                Item {{ item.imageId }}
+              </ion-label>
+              <ion-reorder slot="end"></ion-reorder>
+            </ion-item>
+          </ion-reorder-group>
+
         </div>
       </div>
 
       <!-- Giphy tab -->
       <div [ngClass]="{giphy: true, off: stateFlag}">
         <ion-searchbar placeholder="search gif" (search)="searchFromGiphy($event.target)"></ion-searchbar>
-        <div class="img-container">
+        <!-- <div class="img-container">
           <div class="image-wrapper" *ngFor="let image of giphySearchData">
             <ng-container>
               <ion-img [src]="image.images.preview_gif.url" [alt]="image.title"></ion-img>
               <ion-icon (click)="downloadGif(image, $event.target)" class="overlay" name="download-outline"></ion-icon>
             </ng-container>
           </div>
+        </div> -->
+
+        <div class="img-container">
+          <div class="image-wrapper" *ngFor="let image of giphySearchData" style="width: 50%; box-sizing: border-box;">
+              <ion-img [src]="image.images.preview_gif.url" [alt]="image.title"></ion-img>
+              <ion-icon (click)="downloadGif(image, $event.target)" class="overlay" name="download-outline"></ion-icon>
+          </div>
         </div>
+
         <ion-infinite-scroll (ionInfinite)="onIonInfinite($event)">
           <ion-infinite-scroll-content loadingText="Please wait..."
             loadingSpinner="bubbles"></ion-infinite-scroll-content>

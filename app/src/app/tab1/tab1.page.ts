@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
-import { InfiniteScrollCustomEvent } from '@ionic/angular';
+import { InfiniteScrollCustomEvent, ItemReorderEventDetail } from '@ionic/angular';
 import { FileManagerService } from '../services/file-manager.service';
 import { GiphyService } from '../services/giphy.service';
 import { AlertController } from '@ionic/angular';
+import { StorageService } from '../services/storage.service';
+import * as constant from '../constants/constants';
+import { timeStamp } from 'console';
 
 @Component({
   selector: 'app-tab1',
@@ -13,7 +16,8 @@ export class Tab1Page {
 
   constructor(private giphyService: GiphyService,
     public fileManagerService: FileManagerService,
-    private alertController: AlertController) { }
+    private alertController: AlertController,
+    private storageService: StorageService) { }
 
   imageurl = "";
   stateFlag = true;
@@ -22,24 +26,37 @@ export class Tab1Page {
   searchValue = ""
   sortBy = ""
   order = 1
+  isDisabled = true
+
 
   ngOnInit() {
-    this.fileManagerService.loadSavedGifs().then(data => {
-      console.log(data)
+    this.fileManagerService.loadSavedGifs().then(async data => {
       this.savedPhotos = data;
+
+      //Get last sort by
+      this.sortBy = await this.storageService.get(constant.storage_key.last_sort_by)
+      this.order = await this.storageService.get(constant.storage_key.last_order)
+      this.refreshGifs()
     });
   }
 
+
+  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
+    this.savedPhotos = ev.detail.complete(this.savedPhotos);
+
+    //this.storageService.set(constant.storage_key.gif_store, this.savedPhotos)
+    this.fileManagerService.customOrderStore(this.savedPhotos)
+  }
+
+
+  /**
+   * 
+   * @param target 
+   */
   searchFromGiphy(target?: EventTarget | null) {
     let targetElement = target as HTMLInputElement
     if (target && targetElement.value) {
       const value = targetElement.value
-
-      // this.giphyService.search(value).subscribe((data: any) => {
-      //   this.giphySearchData = data?.data
-      //   console.log(this.giphySearchData?.length)
-      //   console.log(this.giphySearchData)
-      // });
 
       this.fileManagerService.searchFromGiphy(value)
         .subscribe(data =>
@@ -48,6 +65,11 @@ export class Tab1Page {
     }
   }
 
+  /**
+   * 
+   * @param image 
+   * @param target 
+   */
   async downloadGif(image: any, target: EventTarget | null) {
     const alert = await this.alertController.create({
       header: 'Please enter filename',
@@ -63,7 +85,9 @@ export class Tab1Page {
           await this.fileManagerService.saveGif(image.images.original.url, image.id, fileName);
 
           this.savedPhotos = this.fileManagerService.savedFilesAll
+          this.refreshGifs()
 
+          //Hide download button
           let targetElement = target as HTMLInputElement
           targetElement.style.display = 'none';
         }
@@ -82,14 +106,22 @@ export class Tab1Page {
 
   handleSortByChange($e: Event) {
     const value = ($e as CustomEvent).detail.value
-    this, this.refreshGifs()
+    this.isDisabled = (value !== 'custom')
+    this.storageService.set(constant.storage_key.last_sort_by, this.sortBy)
+
+    this.refreshGifs()
   }
 
   handleOrderChange($e: Event) {
     const value = ($e as CustomEvent).detail.value
+    this.storageService.set(constant.storage_key.last_order, this.order)
+
     this.refreshGifs()
   }
 
+  /**
+   * Refresh 
+   */
   async refreshGifs() {
     this.savedPhotos = this.fileManagerService.savedFilesAll.slice()
 
@@ -101,11 +133,15 @@ export class Tab1Page {
       this.fileManagerService.sortGifs(this.savedPhotos, this.sortBy, this.order)
     }
 
-    if (this.sortBy && this.order) {
+    if (this.sortBy && (this.sortBy == 'name' || this.sortBy == 'dateSaved') && this.order) {
       this.fileManagerService.sortGifs(this.savedPhotos, this.sortBy, this.order)
     }
   }
 
+  /**
+   * 
+   * @param ev 
+   */
   onIonInfinite(ev: Event) {
     this.fileManagerService.loadNextBatch().subscribe(data => {
       this.giphySearchData = [...this.giphySearchData, ...data]
@@ -118,6 +154,5 @@ export class Tab1Page {
   toggleTab(flag: boolean) {
     this.stateFlag = flag;
   }
-
 
 }
