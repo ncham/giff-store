@@ -59,9 +59,9 @@ export class Tab1Page {
       const value = targetElement.value
 
       this.fileManagerService.searchFromGiphy(value)
-        .subscribe(data =>
+        .subscribe(data => {
           this.giphySearchData = data
-        )
+        })
     }
   }
 
@@ -82,24 +82,24 @@ export class Tab1Page {
       if (data.role == 'ok') {
         let fileName = data.data.values[0]
         if (fileName) {
+          //Hide download button
+          let targetElement = target as HTMLInputElement
+          targetElement.style.display = 'none';
+
           await this.fileManagerService.saveGif(image.images.original.url, image.id, fileName);
 
           this.savedPhotos = this.fileManagerService.savedFilesAll
           this.refreshGifs()
 
-          //Hide download button
-          let targetElement = target as HTMLInputElement
-          targetElement.style.display = 'none';
         }
       }
     })
-
-    console.log(image)
   }
 
   searchFromDeviceEvent(target: EventTarget | null) {
     let value = (target as HTMLInputElement).value
     this.searchValue = value as string
+    this.isDisabled = this.sortBy !== 'custom' || (this.sortBy == 'custom' && this.searchValue !== "")
 
     this.refreshGifs()
   }
@@ -144,6 +144,7 @@ export class Tab1Page {
    */
   onIonInfinite(ev: Event) {
     this.fileManagerService.loadNextBatch().subscribe(data => {
+      this.giphySearchData = this.giphySearchData ?? []
       this.giphySearchData = [...this.giphySearchData, ...data]
     })
     setTimeout(() => {

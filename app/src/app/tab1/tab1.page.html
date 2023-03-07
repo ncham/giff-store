@@ -41,7 +41,7 @@
           </ion-item>
         </div>
 
-        <div class="img-container">
+        <div class="img-container-device">
           <!-- <div class="image-wrapper" *ngFor="let savedImage of savedPhotos">
             <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
           </div> -->
@@ -50,10 +50,13 @@
           </div> -->
 
           <ion-reorder-group [disabled]="isDisabled" (ionItemReorder)="handleReorder($any($event))">
-            <ion-item *ngFor="let item of savedPhotos">
-              <ion-label>
-                Item {{ item.imageId }}
-              </ion-label>
+            <ion-item *ngFor="let savedImage of savedPhotos">
+              <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
+              <div style="padding-left: 5px;">
+                <span style="font-size: 12px;">{{savedImage.fileName}}</span>
+                <br>
+                <span style="font-size: 12px;">{{savedImage.dateSavedLocale}}</span>
+              </div>
               <ion-reorder slot="end"></ion-reorder>
             </ion-item>
           </ion-reorder-group>

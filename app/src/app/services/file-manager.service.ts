@@ -49,7 +49,8 @@ export class FileManagerService {
     let savedFiles = await this.storageService.get(constant.storage_key.gif_store) ?? [];
 
     if (savedFile) {
-      savedFiles.push({ imageId: imageId, savedLocation: savedFile.uri, fileName: fileName, dateSaved: Date.now() });
+      let dateSavedLocale = new Date(Date.now()).toLocaleString()
+      savedFiles.push({ imageId: imageId, savedLocation: savedFile.uri, fileName: fileName, dateSaved: Date.now(), dateSavedLocale: dateSavedLocale });
 
       await this.storageService.set(constant.storage_key.gif_store, savedFiles);
       await this.customOrderAddNew(imageId)
@@ -80,7 +81,6 @@ export class FileManagerService {
    */
   loadNextBatch() {
     this.offset = this.offset + this.limit
-    console.log(this.searchValue, this.limit, this.offset)
     return this.giphyService.search(this.searchValue, this.limit, this.offset)
       .pipe(
         map(data => data.data),
@@ -178,10 +178,6 @@ export class FileManagerService {
         // Sort the data based on the original order
         if (customOrder) {
           const sortedData = filesCollection.sort((file1, file2) => {
-            console.log('file1#', file1)
-            console.log('file1#', customOrder.indexOf(file1.imageId))
-            console.log('file2#', file2)
-            console.log('file2#', customOrder.indexOf(file2.imageId))
             const file1Index = customOrder.indexOf(file1.imageId);
             const file2Index = customOrder.indexOf(file2.imageId);
             return file1Index - file2Index;
@@ -215,7 +211,7 @@ export class FileManagerService {
   async customOrderAddNew(value: string) {
     return new Promise(async resolve => {
       if (value) {
-        let imageIdCollection = await this.storageService.get(constant.storage_key.custom_order)
+        let imageIdCollection = await this.storageService.get(constant.storage_key.custom_order) ?? []
         imageIdCollection.push(value)
         await this.storageService.set(constant.storage_key.custom_order, imageIdCollection)
         resolve(imageIdCollection)
