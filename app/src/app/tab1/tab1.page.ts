@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
-import { InfiniteScrollCustomEvent, ItemReorderEventDetail } from '@ionic/angular';
+import { InfiniteScrollCustomEvent, ItemReorderEventDetail, LoadingController } from '@ionic/angular';
 import { FileManagerService } from '../services/file-manager.service';
-import { GiphyService } from '../services/giphy.service';
 import { AlertController } from '@ionic/angular';
 import { StorageService } from '../services/storage.service';
 import * as constant from '../constants/constants';
-import { timeStamp } from 'console';
+import { GifItem } from '../interfaces/gif-item';
 
 @Component({
   selector: 'app-tab1',
@@ -14,15 +13,14 @@ import { timeStamp } from 'console';
 })
 export class Tab1Page {
 
-  constructor(private giphyService: GiphyService,
-    public fileManagerService: FileManagerService,
-    private alertController: AlertController,
-    private storageService: StorageService) { }
+  constructor(private alertController: AlertController,
+    private storageService: StorageService,
+    private loadingController: LoadingController,
+    public fileManagerService: FileManagerService) { }
 
-  imageurl = "";
   stateFlag = true;
-  giphySearchData: any = null;
-  savedPhotos: any = null;
+  giphySearchData: any | null = null;
+  savedPhotos: GifItem[] | null = null;
   searchValue = ""
   sortBy = ""
   order = 1
@@ -30,7 +28,7 @@ export class Tab1Page {
 
 
   ngOnInit() {
-    this.fileManagerService.loadSavedGifs().then(async data => {
+    this.fileManagerService.loadSavedGifs().then(async (data: GifItem[] | null) => {
       this.savedPhotos = data;
 
       //Get last sort by
@@ -40,17 +38,8 @@ export class Tab1Page {
     });
   }
 
-
-  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
-    this.savedPhotos = ev.detail.complete(this.savedPhotos);
-
-    //this.storageService.set(constant.storage_key.gif_store, this.savedPhotos)
-    this.fileManagerService.customOrderStore(this.savedPhotos)
-  }
-
-
   /**
-   * 
+   * Search gif images from GIPHY
    * @param target 
    */
   searchFromGiphy(target?: EventTarget | null) {
@@ -61,12 +50,13 @@ export class Tab1Page {
       this.fileManagerService.searchFromGiphy(value)
         .subscribe(data => {
           this.giphySearchData = data
+          console.log(data)
         })
     }
   }
 
   /**
-   * 
+   * Download gif from GIPHY
    * @param image 
    * @param target 
    */
@@ -86,16 +76,38 @@ export class Tab1Page {
           let targetElement = target as HTMLInputElement
           targetElement.style.display = 'none';
 
-          await this.fileManagerService.saveGif(image.images.original.url, image.id, fileName);
+          const loading = await this.loadingController.create();
+          loading.present();
+
+          //Save the gif file on device
+          await this.fileManagerService.saveGif(image.images.downsized.url, image.id, fileName);
+          loading.dismiss()
 
           this.savedPhotos = this.fileManagerService.savedFilesAll
           this.refreshGifs()
-
         }
       }
     })
   }
 
+  /**
+   * Event
+   * Handle custom reorder
+   * @param ev 
+   */
+  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
+    if (this.savedPhotos) {
+      this.savedPhotos = ev.detail.complete(this.savedPhotos);
+    }
+
+    this.fileManagerService.storeCustomOrder(this.savedPhotos)
+  }
+
+  /**
+   * Event
+   * Search items in the device
+   * @param target 
+   */
   searchFromDeviceEvent(target: EventTarget | null) {
     let value = (target as HTMLInputElement).value
     this.searchValue = value as string
@@ -104,14 +116,24 @@ export class Tab1Page {
     this.refreshGifs()
   }
 
+  /**
+   * Event
+   * Sort items by sort order
+   * @param $e 
+   */
   handleSortByChange($e: Event) {
     const value = ($e as CustomEvent).detail.value
-    this.isDisabled = (value !== 'custom')
+    this.isDisabled = value !== 'custom' || (value == 'custom' && this.searchValue !== "")
     this.storageService.set(constant.storage_key.last_sort_by, this.sortBy)
 
     this.refreshGifs()
   }
 
+  /**
+   * Event
+   * Arrange items according to the order
+   * @param $e 
+   */
   handleOrderChange($e: Event) {
     const value = ($e as CustomEvent).detail.value
     this.storageService.set(constant.storage_key.last_order, this.order)
@@ -120,10 +142,10 @@ export class Tab1Page {
   }
 
   /**
-   * Refresh 
+   * Refresh gif images and maintain the state
    */
   async refreshGifs() {
-    this.savedPhotos = this.fileManagerService.savedFilesAll.slice()
+    this.savedPhotos = this.fileManagerService.savedFilesAll?.slice() ?? null
 
     if (this.searchValue) {
       this.savedPhotos = await this.fileManagerService.filterGifs(this.fileManagerService.savedFilesAll, this.searchValue)
@@ -139,7 +161,8 @@ export class Tab1Page {
   }
 
   /**
-   * 
+   * Event
+   * When the screen is scrolled to bottom, next batch of gifs are loaded from api
    * @param ev 
    */
   onIonInfinite(ev: Event) {

@@ -11,10 +11,8 @@
   <div class="wrapper">
     <div class="tabs_wrap">
       <ul>
-        <li [ngClass]="{active: stateFlag}" (click)="toggleTab(true)"><ion-icon name="phone-portrait-outline"
-            style="color: black; font-size: 20px;"></ion-icon></li>
-        <li [ngClass]="{active: !stateFlag}" (click)="toggleTab(false)"><img
-            style="margin: 0; padding: 0; height: 20px;" src="/assets/icon/giphy-ico.png"></li>
+        <li [ngClass]="{active: stateFlag}" (click)="toggleTab(true)"><ion-icon name="phone-portrait-outline"></ion-icon></li>
+        <li [ngClass]="{active: !stateFlag}" (click)="toggleTab(false)"><img src="/assets/icon/giphy-ico.png"></li>
       </ul>
     </div>
 
@@ -26,7 +24,7 @@
         <div class="sort-controls">
           <ion-item>
             <ion-select interface="popover" placeholder="Sort by" [(ngModel)]="sortBy" (ionChange)="handleSortByChange($event)">
-              <ion-select-option value="">Sort by</ion-select-option>
+              <ion-select-option value="">[None]</ion-select-option>
               <ion-select-option value="name">Name</ion-select-option>
               <ion-select-option value="dateSaved">Date Saved</ion-select-option>
               <ion-select-option value="custom">Custom</ion-select-option>
@@ -42,20 +40,14 @@
         </div>
 
         <div class="img-container-device">
-          <!-- <div class="image-wrapper" *ngFor="let savedImage of savedPhotos">
-            <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
-          </div> -->
-          <!-- <div class="image-wrapper" *ngFor="let savedImage of savedPhotos" style="width: 50%; box-sizing: border-box;">
-            <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
-          </div> -->
 
           <ion-reorder-group [disabled]="isDisabled" (ionItemReorder)="handleReorder($any($event))">
             <ion-item *ngFor="let savedImage of savedPhotos">
-              <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.title"></ion-img>
-              <div style="padding-left: 5px;">
-                <span style="font-size: 12px;">{{savedImage.fileName}}</span>
+              <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.fileName"></ion-img>
+              <div class="gif-info">
+                <span>{{savedImage.fileName}}</span>
                 <br>
-                <span style="font-size: 12px;">{{savedImage.dateSavedLocale}}</span>
+                <span>{{savedImage.dateSavedLocale}}</span>
               </div>
               <ion-reorder slot="end"></ion-reorder>
             </ion-item>
@@ -63,21 +55,14 @@
 
         </div>
       </div>
+      <!-- /Device gif tab -->
 
       <!-- Giphy tab -->
       <div [ngClass]="{giphy: true, off: stateFlag}">
         <ion-searchbar placeholder="search gif" (search)="searchFromGiphy($event.target)"></ion-searchbar>
-        <!-- <div class="img-container">
-          <div class="image-wrapper" *ngFor="let image of giphySearchData">
-            <ng-container>
-              <ion-img [src]="image.images.preview_gif.url" [alt]="image.title"></ion-img>
-              <ion-icon (click)="downloadGif(image, $event.target)" class="overlay" name="download-outline"></ion-icon>
-            </ng-container>
-          </div>
-        </div> -->
 
         <div class="img-container">
-          <div class="image-wrapper" *ngFor="let image of giphySearchData" style="width: 50%; box-sizing: border-box;">
+          <div class="image-wrapper" *ngFor="let image of giphySearchData">
               <ion-img [src]="image.images.preview_gif.url" [alt]="image.title"></ion-img>
               <ion-icon (click)="downloadGif(image, $event.target)" class="overlay" name="download-outline"></ion-icon>
           </div>
@@ -88,6 +73,7 @@
             loadingSpinner="bubbles"></ion-infinite-scroll-content>
         </ion-infinite-scroll>
       </div>
+      <!-- /Giphy tab -->
 
     </div>
   </div>

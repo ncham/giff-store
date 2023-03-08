@@ -5,4 +5,4 @@ export const storage_key = {
     last_order: 'last_order',
 }
 
-export const api_call_gif_limit = 25
+export const api_call_gif_limit = 25    //Gif images count per batch

@@ -6,6 +6,7 @@ import { GiphyService } from './giphy.service';
 import { StorageService } from './storage.service';
 import { map, mergeMap } from 'rxjs/operators';
 import * as constant from '../constants/constants';
+import { GifItem } from '../interfaces/gif-item';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,7 @@ export class FileManagerService {
 
   private GIF_STORAGE: string = 'gif-store';
 
-  private _savedFilesAll: any = null;
+  private _savedFilesAll: GifItem[] | null = null;
   get savedFilesAll() {
     return this._savedFilesAll
   }
@@ -22,7 +23,7 @@ export class FileManagerService {
     this._savedFilesAll = savedFilesAll
   }
 
-  private _giphySearchData: any = null;
+  private _giphySearchData: any | null = null;
   get giphySearchData() {
     return this._giphySearchData
   }
@@ -89,7 +90,7 @@ export class FileManagerService {
   }
 
   /**
-   * Check whether the file is already saved in the store
+   * Check whether the file is already saved in the device
    * @param data 
    * @returns 
    */
@@ -106,46 +107,45 @@ export class FileManagerService {
    * @param order 1:ASC, 2:DESC
    * @returns 
    */
-  async loadSavedGifs(sortBy?: string, order = 1) {
+  async loadSavedGifs(): Promise<GifItem[] | null> {
     let savedFileData = await this.storageService.get(constant.storage_key.gif_store) ?? [];
-
-    if (sortBy) {
-      await this.sortGifs(savedFileData, sortBy, order)
-    }
 
     this._savedFilesAll = savedFileData
     return await this.setWebViewPath()
   }
 
   /**
-   * 
+   * Set the image path from local storage
    * @returns 
    */
-  setWebViewPath() {
+  setWebViewPath(): Promise<GifItem[] | null> {
     return new Promise(resolve => {
-      this._savedFilesAll.forEach(async (file: any) => {
-        const readFile = await Filesystem.readFile({
+      this._savedFilesAll?.forEach(async (file: GifItem) => {
+        Filesystem.readFile({
           path: file.savedLocation,
-        });
-        file.webviewPath = `data:image/gif;base64,${readFile.data}`;
+        }).then(readFile => {
+          file.webviewPath = `data:image/gif;base64,${readFile.data}`;
+        }).catch(e => {
+          file.webviewPath = "../../assets/images/not_found.jpg"
+        })
       });
       resolve(this._savedFilesAll)
     })
   }
 
   /**
-   * Sort gifs
+   * Sort gifs collection
    * @param filesCollection 
    * @param sortBy 
    * @param order 1:ASC, 2:DESC
    * @returns 
    */
-  sortGifs(filesCollection: Array<any>, sortBy: string, order: number): Promise<any> {
+  sortGifs(filesCollection: GifItem[] | null, sortBy: string, order: number): Promise<GifItem[] | null> {
 
     return new Promise(async resolve => {
       //Sort by Name
       if (sortBy == 'name') {
-        filesCollection.sort((file1: any, file2: any) => {
+        filesCollection?.sort((file1: GifItem, file2: GifItem) => {
           if (order == 1) {
             return file1.fileName.localeCompare(file2.fileName)
           } else if (order == 2) {
@@ -160,7 +160,7 @@ export class FileManagerService {
 
       //Sort by Date Saved
       if (sortBy == 'dateSaved') {
-        filesCollection.sort((file1: any, file2: any) => {
+        filesCollection?.sort((file1: GifItem, file2: GifItem) => {
           if (order == 1) {
             return file1.dateSaved - file2.dateSaved
           } else if (order == 2) {
@@ -177,7 +177,7 @@ export class FileManagerService {
         let customOrder = await this.storageService.get(constant.storage_key.custom_order)
         // Sort the data based on the original order
         if (customOrder) {
-          const sortedData = filesCollection.sort((file1, file2) => {
+          const sortedData = filesCollection?.sort((file1: GifItem, file2: GifItem) => {
             const file1Index = customOrder.indexOf(file1.imageId);
             const file2Index = customOrder.indexOf(file2.imageId);
             return file1Index - file2Index;
@@ -190,12 +190,12 @@ export class FileManagerService {
 
 
   /**
-   * Fileter gifs
+   * Fileter gifs according to the search value
    */
-  filterGifs(filesCollection: Array<any>, value: string): Promise<any> {
+  filterGifs(filesCollection: Array<GifItem> | null, value: string): Promise<GifItem[] | null> {
     return new Promise(resolve => {
       if (value) {
-        let filtered = filesCollection.filter(element => element.fileName.toLowerCase().includes(value.toLowerCase()))
+        let filtered = filesCollection?.filter(element => element.fileName.toLowerCase().includes(value.toLowerCase())) ?? []
         resolve(filtered)
       } else {
         resolve(filesCollection)
@@ -203,11 +203,22 @@ export class FileManagerService {
     })
   }
 
-  customOrderStore(filesCollection: any) {
-    const imageIdCollection = filesCollection.map((element: any) => element.imageId)
-    this.storageService.set(constant.storage_key.custom_order, imageIdCollection)
+  /**
+   * Extract imageId of the item and store
+   * @param filesCollection 
+   */
+  storeCustomOrder(filesCollection: GifItem[] | null) {
+    if (filesCollection) {
+      const imageIdCollection = filesCollection.map((element: GifItem) => element.imageId)
+      this.storageService.set(constant.storage_key.custom_order, imageIdCollection)
+    }
   }
 
+  /**
+   * Once after gif is downloaded, add it to the end of imageId collection
+   * @param value 
+   * @returns 
+   */
   async customOrderAddNew(value: string) {
     return new Promise(async resolve => {
       if (value) {

@@ -19,7 +19,7 @@ export class StorageService {
     const storage = await this.storage.create();
     this._storage = storage;
   }
-  
+
   public async set(key: string, value: any): Promise<any> {
     await this.init();
     return this._storage?.set(key, value);
@@ -34,5 +34,5 @@ export class StorageService {
     await this.init();
     return this._storage?.clear();
   }
-  
+
 }
