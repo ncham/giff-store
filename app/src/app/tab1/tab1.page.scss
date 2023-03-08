@@ -152,13 +152,19 @@ ion-select::part(icon) {
   display: none;
 }
 
-// ion-select::part(text) {
-//   color: #545ca7;
-//   font-weight: bold;
-// }
-
-ion-select,select {
+ion-select::part(text) {
   color: #545ca7;
-  font-weight: bold;
+  font-weight: 600;
 }
 
+.no-gifs-card {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  margin: 10px;
+  padding: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}

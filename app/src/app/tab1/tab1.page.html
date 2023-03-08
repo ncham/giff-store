@@ -24,10 +24,10 @@
         <div class="sort-controls">
           <ion-item>
             <ion-select interface="popover" placeholder="Sort by" [(ngModel)]="sortBy" (ionChange)="handleSortByChange($event)">
-              <ion-select-option value="">[None]</ion-select-option>
-              <ion-select-option value="name">Name</ion-select-option>
-              <ion-select-option value="dateSaved">Date Saved</ion-select-option>
-              <ion-select-option value="custom">Custom</ion-select-option>
+              <ion-select-option value="">Sort by</ion-select-option>
+              <ion-select-option value="name" class="select-option">Name</ion-select-option>
+              <ion-select-option value="dateSaved" class="select-option">Date Saved</ion-select-option>
+              <ion-select-option value="custom" class="select-option">Custom</ion-select-option>
             </ion-select>
           </ion-item>
 
@@ -40,10 +40,18 @@
         </div>
 
         <div class="img-container-device">
+          <!-- If there are no gifs -->
+          <ng-container *ngIf="!savedPhotos || savedPhotos.length == 0">
+            <ion-card class="no-gifs-card">
+              <ion-card-content>
+                <p>No Saved Gifs</p>
+              </ion-card-content>
+            </ion-card>
+          </ng-container>
 
           <ion-reorder-group [disabled]="isDisabled" (ionItemReorder)="handleReorder($any($event))">
             <ion-item *ngFor="let savedImage of savedPhotos">
-              <ion-img [src]="savedImage.webviewPath " [alt]="savedImage.fileName"></ion-img>
+              <ion-img [src]="savedImage.webviewPath" [alt]="savedImage.fileName"></ion-img>
               <div class="gif-info">
                 <span>{{savedImage.fileName}}</span>
                 <br>
@@ -63,8 +71,8 @@
 
         <div class="img-container">
           <div class="image-wrapper" *ngFor="let image of giphySearchData">
-              <ion-img [src]="image.images.preview_gif.url" [alt]="image.title"></ion-img>
-              <ion-icon (click)="downloadGif(image, $event.target)" class="overlay" name="download-outline"></ion-icon>
+            <ion-img [src]="image.images.preview_gif.url" [alt]="image.title"></ion-img>
+            <ion-icon (click)="downloadGif(image, $event.target)" class="overlay" name="download-outline"></ion-icon>
           </div>
         </div>
 
