@@ -1,44 +1,53 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-
-  </ion-toolbar>
+  <!-- <ion-toolbar>
+  </ion-toolbar> -->
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-  </ion-header>
+  <!-- <ion-header collapse="condense" >
+  </ion-header> -->
 
   <div class="wrapper">
     <div class="tabs_wrap">
       <ul>
-        <li [ngClass]="{active: stateFlag}" (click)="toggleTab(true)"><ion-icon name="phone-portrait-outline"></ion-icon></li>
-        <li [ngClass]="{active: !stateFlag}" (click)="toggleTab(false)"><img src="/assets/icon/giphy-ico.png"></li>
+        <li [ngClass]="{active: stateFlag}" (click)="toggleTab(true)"><ion-icon
+            name="phone-portrait-outline"></ion-icon><span>&nbsp;Device</span></li>
+        <li [ngClass]="{active: !stateFlag}" (click)="toggleTab(false)"><ion-icon
+            name="cloud-download-outline"></ion-icon><span>&nbsp;Download</span></li>
       </ul>
+    </div>
+
+    <div *ngIf="stateFlag" class="search-container">
+      <ion-searchbar [debounce]="1000" placeholder="Search Gif"
+        (ionChange)="searchFromDeviceEvent($event.target)"></ion-searchbar>
+    </div>
+
+    <div *ngIf="!stateFlag" class="search-container">
+      <ion-searchbar placeholder="Search Gif" (search)="searchFromGiphy($event.target)"></ion-searchbar>
+    </div>
+
+    <!-- Device gif tab -->
+    <div *ngIf="stateFlag" class="sort-controls">
+      <ion-item class="sort-by">
+        <ion-select interface="popover" placeholder="Sort by" [(ngModel)]="sortBy"
+          (ionChange)="handleSortByChange($event)">
+          <ion-select-option value="">Default</ion-select-option>
+          <ion-select-option value="name" class="select-option">Name</ion-select-option>
+          <ion-select-option value="dateSaved" class="select-option">Date Saved</ion-select-option>
+          <ion-select-option value="custom" class="select-option">Custom</ion-select-option>
+        </ion-select>
+        <ion-icon name="swap-vertical-outline" [ngClass]="{'sort-by-icon': true, sorted: sortBy}"></ion-icon>
+      </ion-item>
+
+      <div class="order-btn">
+        <i [ngClass]="{bi: true, sorted: (sortBy == 'name' || sortBy == 'dateSaved')  }" [class.bi-sort-down]="order==1"
+          [class.bi-sort-up]="order==2" (click)="handleOrderChange($event)"></i>
+      </div>
     </div>
 
     <div class="container">
       <div [ngClass]="{device: true, off: !stateFlag}">
-        <ion-searchbar [debounce]="1000" placeholder="search gif" (ionChange)="searchFromDeviceEvent($event.target)"></ion-searchbar>
-
-        <!-- Device gif tab -->
-        <div class="sort-controls">
-          <ion-item>
-            <ion-select interface="popover" placeholder="Sort by" [(ngModel)]="sortBy" (ionChange)="handleSortByChange($event)">
-              <ion-select-option value="">Sort by</ion-select-option>
-              <ion-select-option value="name" class="select-option">Name</ion-select-option>
-              <ion-select-option value="dateSaved" class="select-option">Date Saved</ion-select-option>
-              <ion-select-option value="custom" class="select-option">Custom</ion-select-option>
-            </ion-select>
-          </ion-item>
-
-          <ion-item>
-            <ion-select interface="popover" placeholder="Order" [(ngModel)]="order" (ionChange)="handleOrderChange($event)">
-              <ion-select-option value=1>Asc</ion-select-option>
-              <ion-select-option value=2>Desc</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </div>
-
+        
         <div class="img-container-device">
           <!-- If there are no gifs -->
           <ng-container *ngIf="!savedPhotos || savedPhotos.length == 0">
@@ -53,9 +62,12 @@
             <ion-item *ngFor="let savedImage of savedPhotos">
               <ion-img [src]="savedImage.webviewPath" [alt]="savedImage.fileName"></ion-img>
               <div class="gif-info">
-                <span>{{savedImage.fileName}}</span>
-                <br>
-                <span>{{savedImage.dateSavedLocale}}</span>
+                <span class="filename">{{savedImage.fileName}}</span>
+                <!-- <br> -->
+                <span class="date-downloaded">
+                  {{savedImage.dateSavedLocale | date:'yyyy/MM/dd'}}&nbsp;<br>
+                  {{savedImage.dateSavedLocale | date:'HH:mm:ss'}}
+                </span>
               </div>
               <ion-reorder slot="end"></ion-reorder>
             </ion-item>
@@ -67,7 +79,15 @@
 
       <!-- Giphy tab -->
       <div [ngClass]="{giphy: true, off: stateFlag}">
-        <ion-searchbar placeholder="search gif" (search)="searchFromGiphy($event.target)"></ion-searchbar>
+
+        <ng-container *ngIf="!giphySearchData || giphySearchData.length == 0">
+          <ion-card class="no-gifs-card">
+            <ion-card-content>
+              <p *ngIf="!giphySearchData">Search for GIFs on Giphy</p>
+              <p *ngIf="giphySearchData && giphySearchData.length == 0">No matching results found</p>
+            </ion-card-content>
+          </ion-card>
+        </ng-container>
 
         <div class="img-container">
           <div class="image-wrapper" *ngFor="let image of giphySearchData">

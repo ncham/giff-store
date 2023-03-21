@@ -33,7 +33,7 @@ export class Tab1Page {
 
       //Get last sort by
       this.sortBy = await this.storageService.get(constant.storage_key.last_sort_by)
-      this.order = await this.storageService.get(constant.storage_key.last_order)
+      this.order = await this.storageService.get(constant.storage_key.last_order) ?? 1
       this.refreshGifs()
     });
   }
@@ -135,7 +135,8 @@ export class Tab1Page {
    * @param $e 
    */
   handleOrderChange($e: Event) {
-    const value = ($e as CustomEvent).detail.value
+    this.order = (this.order == 1 ? 2 : 1);
+    // const value = ($e as CustomEvent).detail.value
     this.storageService.set(constant.storage_key.last_order, this.order)
 
     this.refreshGifs()
@@ -166,13 +167,17 @@ export class Tab1Page {
    * @param ev 
    */
   onIonInfinite(ev: Event) {
-    this.fileManagerService.loadNextBatch().subscribe(data => {
-      this.giphySearchData = this.giphySearchData ?? []
-      this.giphySearchData = [...this.giphySearchData, ...data]
-    })
-    setTimeout(() => {
+    if (this.giphySearchData) {
+      this.fileManagerService.loadNextBatch().subscribe(data => {
+        this.giphySearchData = this.giphySearchData ?? []
+        this.giphySearchData = [...this.giphySearchData, ...data]
+      })
+      setTimeout(() => {
+        (ev as InfiniteScrollCustomEvent).target.complete();
+      }, 500);
+    }else{
       (ev as InfiniteScrollCustomEvent).target.complete();
-    }, 500);
+    }
   }
 
   toggleTab(flag: boolean) {
