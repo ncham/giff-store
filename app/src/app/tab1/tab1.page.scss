@@ -110,6 +110,12 @@ ion-searchbar {
   }
 }
 
+.search-container {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* sort controls */
 ion-item.sort-by {
   margin-left: 10px;
   border-radius: 10px;
@@ -152,11 +158,7 @@ ion-item .sort-by-icon.sorted {
 .order-btn i.sorted {
   color: #FFE3B3;
 }
-
-.search-container {
-  padding-left: 15px;
-  padding-right: 15px;
-}
+/* --sort controls-- */
 
 ion-col {
   background-color: #135d54;
@@ -198,10 +200,6 @@ ion-img {
   background-color: #F0F0F0;
   margin-left: 5px;
   margin-right: 5px;
-}
-
-.searchbar-md {
-  padding: 6px 9px !important; // Adjust as your need 
 }
 
 .img-container-device {
